@@ -55,25 +55,61 @@ class ParseCVX(object):
             else:
                 Log.warn("Unknown line {}: {}".format(l_num, line))
 
+        return content
+
     @classmethod
     def parse_parameter(self, line):
         '''
             dimension_expr: string expression for reflecting dimension
+
+        Should have used regex!
         '''
-        name, dimensions = Utils.clean_split(line, None, maxsplit=1)
+        split = Utils.clean_split(line, None, maxsplit=1)
 
+        name, second_half = split[:2]
+        Log.log("{}: Found parameter or variable".format(name))
+
+        # Handle special structure flags
+        special_features = ['psd', 'diag', 'nsd', 'diagonal']
+        special = []
+        for special_feature in special_features:
+            if second_half.endswith(special_feature):
+                special.append(special_feature)
+                Log.log("{}: Registering special behavior: {}".format(name, special))
+                second_half = second_half.replace(special_feature, '')
+
+        # Handle arrays
+        if '[' in name:
+            name = name.split('[')[0]
+            array_expr = second_half.split(', ')[-1]
+            second_half = second_half.split(array_expr)[0]
+
+            array_expr = second_half.split('=')[-1]
+            lower_bound, upper_bound = array_expr.split('..')
+            array_bounds = (lower_bound, upper_bound)  # Strings
+
+        else:
+            array_length = None
+
+        dimensions = second_half
+
+        # Handle dimension expression
         dimensions = Utils.remove_chars(dimensions, '(', ')')
-
-        # Parse the dimension expression
         if ',' in dimensions:
             dimension_expr = dimensions.replace(',', ' *')
+
         else:
             dimension_expr = dimensions
 
-        paramter = {
+        Log.log("{}: Registering dimension expression: {}".format(name, dimension_expr))
+
+        parameter = {
             'name': name,
-            'dimension_expr': dimension_expr
+            'dimension_expr': dimension_expr,
+            'special': special,
+            'array_length': array_length,
         }
+        return parameter
 
     @classmethod
     def parse_dimension(self, line):
@@ -88,7 +124,7 @@ class ParseCVX(object):
 
 
 if __name__ == '__main__':
-    Log.verbose = True
+    Log.set_verbose()
     fpath = os.path.dirname(os.path.realpath(__file__))
     test_path = os.path.join(fpath, '..', 'test', 'description.cvxgen')
     print ParseCVX.read_file(test_path)
