@@ -55,7 +55,7 @@ if __name__ == '__main__':
     Log.error('error', 'text')
 
     Log.set_verbose()
-    Log.log('log', 'text')  
+    Log.log('log', 'text')
     Log.warn('warn', 'text')
     Log.error('error', 'text')
 

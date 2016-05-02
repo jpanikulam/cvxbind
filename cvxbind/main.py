@@ -3,10 +3,9 @@ import argparse
 from utils import Log
 from parse_cvxgen import ParseCVX
 from gen_cpp import GenCPP
-import argparse
 
-if __name__ == '__main__':
-    import argparse
+
+def main():
     parser = argparse.ArgumentParser(description='CVXGEN Python Binding Generator')
     parser.add_argument('path', metavar='path', default='./images',
                         help='Give the target path')
@@ -18,3 +17,7 @@ if __name__ == '__main__':
     parsed_cvx = ParseCVX.read_file(path)
     write_text = GenCPP.make_cvx_binding(parsed_cvx)
     print write_text
+
+
+if __name__ == '__main__':
+    main()
